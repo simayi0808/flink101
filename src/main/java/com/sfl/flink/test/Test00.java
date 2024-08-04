@@ -11,8 +11,7 @@ public class Test00 {
         }
 
         System.out.println(12345);
-        System.out.println(22222);
-        System.out.println(23456);
+
 
     }
 
