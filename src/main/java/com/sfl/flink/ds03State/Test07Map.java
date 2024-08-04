@@ -1,0 +1,63 @@
+package com.sfl.flink.ds03State;
+
+import org.apache.flink.api.common.state.MapState;
+import org.apache.flink.api.common.state.MapStateDescriptor;
+import org.apache.flink.api.common.typeinfo.Types;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.streaming.api.datastream.DataStreamSource;
+import org.apache.flink.streaming.api.datastream.KeyedStream;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
+import org.apache.flink.util.Collector;
+
+import java.util.*;
+
+public class Test07Map {
+
+    public static void main(String[] args) throws Exception {
+        //  1 ，执行环境 ：流环境
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setParallelism(3);
+        //  2 ，源 ：
+        DataStreamSource<Integer> dsSource01 = env.fromElements(1, 2, 3, 4, 5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24);
+
+        //  3 ，分组 ：
+        KeyedStream<Integer, Integer> dsKeyed = dsSource01.keyBy(e -> e % 5);
+
+        //  4 ，处理 ：
+        //      泛型 ：k ，输入，输出
+        SingleOutputStreamOperator<Integer> dsRes = dsKeyed.process(new KeyedProcessFunction<Integer, Integer, Integer>() {
+            //  1 ，定义状态 ：
+            MapState<String, Integer> mapState;
+            //  2 ，初始化状态 ：
+            @Override
+            public void open(Configuration parameters) throws Exception {
+                //  初始化状态 ：
+                mapState = getRuntimeContext().getMapState(new MapStateDescriptor<String,Integer>("mapState", Types.STRING,Types.INT));
+            }
+            @Override
+            public void processElement(Integer value, Context ctx, Collector<Integer> out) throws Exception {
+                //  1 ，当前 key ：
+                Integer currentKey = ctx.getCurrentKey();
+                //  2 ，存数据 ：
+                mapState.put(value+"",currentKey);
+                //  3 ，取数据 ：
+                Iterator<Map.Entry<String, Integer>> iterator = mapState.iterator();
+                //  4 ，打印 ：
+                while(iterator.hasNext()){
+                    Map.Entry<String,Integer> entry = iterator.next();
+                    System.out.print(entry.getKey()+"："+entry.getValue()+"，");
+                }
+                System.out.println();
+                out.collect(value);
+            }
+        });
+
+        //  6 ，打印 ：
+        dsRes.print();
+        //  7 ，执行 ：
+        env.execute();
+    }
+
+}
