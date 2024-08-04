@@ -11,8 +11,7 @@ public class Test00 {
         }
 
         System.out.println(12345);
-        System.out.println(67890);
-        System.out.println(23456);
+        System.out.println(11111);
 
     }
 
