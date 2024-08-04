@@ -10,7 +10,7 @@ public class Test00 {
             System.out.println(MathUtils.murmurHash(i) % 128);
         }
 
-
+        System.out.println(12345);
 
     }
 
